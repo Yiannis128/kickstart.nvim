@@ -3,8 +3,8 @@
 -- controls what gets installed and how tools map to filetypes.
 
 return {
-  -- LSP servers: keys are server names (auto-installed by mason-tool-installer),
-  -- values are server-specific config passed to lspconfig.
+  -- LSP servers: keys are lspconfig server names,
+  -- values are server-specific config passed to vim.lsp.config().
   lsp = {
     lua_ls = {
       settings = {
@@ -17,16 +17,7 @@ return {
     },
   },
 
-  -- Formatter Mason package names to install.
-  fmt = {
-    'stylua',
-    'prettier',
-    'black',
-  },
-
   -- Filetype -> formatter mapping (passed to conform.nvim).
-  -- Tools here that aren't Mason packages (e.g. pyproject_fmt) don't
-  -- need to be in the fmt list above.
   formatters_by_ft = {
     lua = { 'stylua' },
     markdown = { 'prettier' },
@@ -34,16 +25,20 @@ return {
     toml = { 'pyproject_fmt' },
   },
 
-  -- DAP adapter Mason package names to install.
-  dap = {},
-
-  -- Linter Mason package names to install.
-  linter = {
-    'markdownlint',
-  },
-
   -- Filetype -> linter mapping (passed to nvim-lint).
   linters_by_ft = {
     markdown = { 'markdownlint' },
+  },
+
+  -- DAP adapter Mason package names to install.
+  dap = {},
+
+  -- Mason packages to auto-install (uses Mason registry names).
+  -- Leave empty to manage installations manually via :Mason UI.
+  ensure_installed = {
+    -- LSP servers
+    -- Formatters
+    -- Linters
+    -- DAP adapters
   },
 }

@@ -603,11 +603,7 @@ require('lazy').setup({
       --    :Mason
       --
       -- You can press `g?` for help in this menu.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, mason_tools.fmt)
-      vim.list_extend(ensure_installed, mason_tools.linter)
-      vim.list_extend(ensure_installed, mason_tools.dap)
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+      require('mason-tool-installer').setup { ensure_installed = mason_tools.ensure_installed }
 
       for name, server in pairs(servers) do
         server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
