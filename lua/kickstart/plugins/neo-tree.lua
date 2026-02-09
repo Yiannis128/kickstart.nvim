@@ -11,9 +11,20 @@ return {
   },
   lazy = false,
   keys = {
-    { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+    {
+      '\\',
+      function()
+        local ok, err = pcall(vim.cmd, 'Neotree reveal')
+        if not ok then
+          vim.notify('Neo-tree: No file to reveal (empty buffer)\n' .. err, vim.log.levels.INFO)
+        end
+      end,
+      desc = 'NeoTree reveal',
+      silent = true,
+    },
   },
   opts = {
+    open_files_do_not_replace_types = { 'terminal', 'trouble', 'qf' },
     filesystem = {
       window = {
         mappings = {
