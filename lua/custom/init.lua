@@ -15,6 +15,7 @@ vim.keymap.set('n', '<C-s>', '<Cmd>w<CR>', { noremap = true, silent = true, desc
 vim.keymap.set('i', '<C-s>', '<Esc><Cmd>w<CR>a', { noremap = true, silent = true, desc = 'Save file' })
 
 vim.opt.colorcolumn = '80'
+vim.opt.mousescroll = 'ver:1,hor:0'
 
 -- Disable horizontal scrolling in terminal buffers
 vim.api.nvim_create_autocmd('TermOpen', {

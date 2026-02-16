@@ -129,6 +129,17 @@ return {
   -- OSC 11 terminal theme detection
   { 'afonsofrancof/OSC11.nvim', lazy = true },
 
+  -- Auto-enable Mason-installed LSP servers not explicitly configured in mason.lua
+  {
+    'mason-org/mason-lspconfig.nvim',
+    dependencies = { 'mason-org/mason.nvim', 'neovim/nvim-lspconfig' },
+    opts = {
+      automatic_enable = {
+        exclude = vim.tbl_keys(require('custom.mason').lsp),
+      },
+    },
+  },
+
   -- Auto-detect indentation style from buffer content
   { 'tpope/vim-sleuth' },
 
