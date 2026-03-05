@@ -4,127 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Neovim configuration based on kickstart.nvim - a minimal, single-file starting point for Neovim. The configuration uses lazy.nvim as the plugin manager and is written entirely in Lua.
+Neovim configuration based on kickstart.nvim. Uses lazy.nvim for plugin management. Written entirely in Lua.
 
 ## Architecture
 
 ### Core Structure
 
-- `init.lua` - Main configuration file containing all plugin specs, LSP setup, keymaps, and options
-- `lua/custom/init.lua` - Custom initialization for user-specific settings (window resize keymaps, colorcolumn)
-- `lua/custom/plugins/init.lua` - Custom plugin definitions (currently barbar.nvim for tab management)
-- `lua/kickstart/plugins/` - Optional kickstart plugins (autopairs, debug, gitsigns, indent_line, lint, neo-tree)
-
-### Plugin Management
-
-Plugins are managed via [lazy.nvim](https://github.com/folke/lazy.nvim). All plugin specifications are defined in the `require('lazy').setup({})` call in init.lua:248-1013.
-
-To manage plugins:
-- Check plugin status: `:Lazy`
-- Update plugins: `:Lazy update`
-- Press `?` in the Lazy menu for help
+- `init.lua` - Main configuration: all base plugin specs, LSP setup, keymaps, vim options. The `require('lazy').setup({})` call contains all plugin specifications. Loaded kickstart plugins (indent_line, lint, autopairs, neo-tree, gitsigns) are enabled at the bottom.
+- `lua/custom/init.lua` - Custom settings loaded at end of init.lua: window resize keymaps, theming (rose-pine via OSC11 detection), custom commands (`:Ask`, `:Diff`, `:Diffs`), colorcolumn, save keymaps, exrc support.
+- `lua/custom/plugins/init.lua` - Custom plugin definitions: alpha-nvim dashboard, barbar tabs, treesitter-context, colorschemes, mason-lspconfig (auto-enables Mason-installed servers), vim-sleuth, nvim-notify.
+- `lua/custom/mason.lua` - Centralized Mason tool registry. Single source of truth for LSP servers, formatters, linters, and DAP adapters. Referenced by init.lua for LSP setup and conform.nvim formatter mapping.
+- `lua/kickstart/plugins/` - Optional kickstart plugin modules (autopairs, debug, gitsigns, indent_line, lint, neo-tree).
 
 ### LSP Configuration
 
-LSP setup uses:
-- `nvim-lspconfig` for language server configurations
-- `mason.nvim` and `mason-lspconfig.nvim` for automatic LSP installation
-- `mason-tool-installer.nvim` for ensuring tools are installed
+LSP uses `nvim-lspconfig` + `mason.nvim` + `mason-tool-installer.nvim`. blink.cmp handles capability advertisement internally (no manual `get_lsp_capabilities()` needed).
 
-Currently configured language servers (init.lua:673-701):
-- `clangd` (C/C++)
-- `gopls` (Go)
-- `pyright` (Python)
-- `lua_ls` (Lua)
-
-LSP attach handlers and keymaps are defined in the `LspAttach` autocommand (init.lua:525-627).
+- **Add an LSP server**: add entry to `lua/custom/mason.lua` `lsp` table, optionally add to `ensure_installed` for auto-install
+- **Add a formatter**: add to `formatters_by_ft` in `lua/custom/mason.lua`
+- **Add a linter**: add to `linters_by_ft` in `lua/custom/mason.lua`
+- Mason-installed servers not in `custom.mason.lsp` are auto-enabled via `mason-lspconfig.nvim` in custom plugins
 
 ### Completion
 
-Uses `blink.cmp` for autocompletion with `LuaSnip` for snippets (init.lua:780-877).
-
-Default keymap preset uses `<C-y>` to accept completions.
+`blink.cmp` with `LuaSnip` for snippets. `<C-y>` accepts completions (default preset).
 
 ### Formatting
 
-`conform.nvim` handles code formatting (init.lua:739-778):
-- Format manually: `<leader>f`
-- Format on save is enabled by default (except for C/C++)
-- Currently configured formatter: `stylua` for Lua
-
-Run `:ConformInfo` to check formatter status.
+`conform.nvim` with format-on-save enabled (except C/C++). Manual format: `<leader>f`. Formatter mapping lives in `lua/custom/mason.lua` `formatters_by_ft`.
 
 ## Code Style
 
-### Lua Formatting
+Lua formatted with StyLua (`.stylua.toml`): 160 char width, 2-space indent, single quotes, no call parentheses, collapse simple statements.
 
-Lua code is formatted with StyLua. Configuration in `.stylua.toml`:
-- 160 character column width
-- 2 space indentation
-- Single quotes preferred
-- No call parentheses
+## Key Mappings
 
-Format Lua files: `<leader>f` or let format-on-save handle it.
-
-## Key Concepts
-
-### Leader Key
-Leader key is `<space>` (init.lua:90).
-
-### Custom Plugins
-Add new plugins in `lua/custom/plugins/init.lua` following the lazy.nvim plugin specification format.
-
-### Custom Settings
-Add custom keymaps and vim options in `lua/custom/init.lua`.
-
-### Kickstart Philosophy
-This configuration is designed to be read top-to-bottom and understood completely. When making changes, maintain clear comments explaining what code does and why it exists.
-
-## Common Operations
-
-### Adding a New LSP
-1. Add server name to the `servers` table in init.lua:673-701
-2. Optionally add server-specific settings
-3. Mason will auto-install on next startup (or run `:Mason` to install manually)
-
-### Adding a New Plugin
-1. Add plugin spec to `lua/custom/plugins/init.lua`
-2. Restart Neovim or run `:Lazy sync`
-
-### Checking Health
-Run `:checkhealth` to diagnose configuration issues.
-
-### File Navigation
-- Find files: `<leader>sf`
-- Live grep: `<leader>sg`
-- Search help: `<leader>sh`
-- Browse buffers: `<leader><leader>`
-- File explorer: Use neo-tree (if enabled)
-
-### Buffer/Tab Management (Barbar)
-Custom plugin for buffer tabs with these keymaps:
-- `<A-Left>` / `<A-Right>` - Switch between buffers
-- `<A-Up>` / `<A-Down>` - Move buffer position
-- `<A-p>` - Pin buffer
+- Leader: `<space>`
+- `<C-Right/Left/Up/Down>` - Resize windows
+- `<C-h/j/k/l>` - Navigate windows
+- `<C-s>` - Save file
+- `<A-Left/Right>` - Switch buffers (barbar)
+- `<A-Up/Down>` - Move buffer position
 - `<A-x>` - Close buffer
+- `<leader>sf` - Find files, `<leader>sg` - Live grep, `<leader><leader>` - Buffers
+- `<leader>f` - Format buffer
+- `<leader>tc` - Colorscheme picker
 
-### Window Management
-Custom keymaps (lua/custom/init.lua:1-11):
-- `<C-Right>` / `<C-Left>` - Adjust window width
-- `<C-Up>` / `<C-Down>` - Adjust window height
-- `<C-h/j/k/l>` - Navigate between windows
+## Upstream Tracking
+
+This config tracks `upstream` remote (nvim-lua/kickstart.nvim). Merge with `git merge upstream/master`, resolving conflicts to preserve custom additions. Custom files (`lua/custom/*`) don't exist upstream so they won't conflict.
 
 ## Dependencies
 
-External tools required:
-- `git`, `make`, `unzip`, C compiler (`gcc`)
-- `ripgrep` - for live grep functionality
-- `fd-find` - for file finding
-- Clipboard tool (`xclip`/`xsel` on Linux)
-- Nerd Font (optional, enabled via `vim.g.have_nerd_font = true`)
-
-## Notes
-
-- Neovim targets latest stable/nightly versions only
-- Configuration expects vim.uv API (Neovim 0.10+)
-- Use `:help` and `<space>sh` to search documentation when stuck
+`git`, `make`, `unzip`, `gcc`, `ripgrep`, `fd-find`, `tree-sitter-cli`, clipboard tool (`xclip`/`xsel`), Nerd Font (enabled). Neovim 0.10+ required (vim.uv API).
