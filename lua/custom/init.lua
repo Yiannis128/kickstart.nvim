@@ -55,11 +55,22 @@ local function set_theme(light_theme, dark_theme)
     return
   end
 
-  -- Use OSC11.nvim for automatic terminal theme detection
+  -- Use OSC11.nvim for automatic terminal theme detection.
+  -- OSC11 is passive: it only listens for OSC 11 responses (via a TermResponse
+  -- autocmd) and never queries the terminal itself. It relies on overhearing
+  -- the response to the query Neovim fires once at startup. That response is
+  -- async, so if it arrives before this listener is registered it is missed
+  -- and no theme is applied (the "random" failure).
   require('osc11').setup {
     on_light = function() apply_theme(light_theme) end,
     on_dark = function() apply_theme(dark_theme) end,
   }
+
+  -- Proactively re-query the terminal for its background color. This guarantees
+  -- a fresh OSC 11 response arrives *after* the listener above is registered,
+  -- so OSC11 reliably applies the correct light/dark theme regardless of how
+  -- the startup response raced against plugin load order.
+  io.write('\027]11;?\007')
 end
 
 -- Themes - light theme first, optional dark theme second
