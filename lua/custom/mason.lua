@@ -22,7 +22,8 @@ return {
     lua = { 'stylua' },
     markdown = { 'prettier' },
     python = { 'black' },
-    toml = { 'pyproject_fmt' },
+    tex = { 'tex-fmt' },
+    toml = { 'pyproject-fmt' },
   },
 
   -- Filetype -> linter mapping (passed to nvim-lint).
@@ -31,7 +32,7 @@ return {
   },
 
   -- DAP adapter Mason package names to install.
-  dap = {},
+  dap = { 'codelldb' },
 
   -- Mason packages to auto-install (uses Mason registry names).
   -- Leave empty to manage installations manually via :Mason UI.
