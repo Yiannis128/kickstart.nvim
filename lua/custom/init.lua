@@ -84,6 +84,19 @@ vim.keymap.set(
   { noremap = true, silent = true, desc = '[T]heme [C]olorscheme picker' }
 )
 
+-- Reload the Neovim config without restarting.
+-- Clears cached custom/kickstart Lua modules so edits under lua/ are picked up,
+-- then re-sources init.lua.
+vim.api.nvim_create_user_command('ReloadConfig', function()
+  for name in pairs(package.loaded) do
+    if name:match('^custom') or name:match('^kickstart') then
+      package.loaded[name] = nil
+    end
+  end
+  vim.cmd('source ' .. vim.fn.stdpath('config') .. '/init.lua')
+  vim.notify('Config reloaded', vim.log.levels.INFO, { title = 'ReloadConfig' })
+end, { desc = 'Reload Neovim config' })
+
 -- Git diff with delta
 vim.api.nvim_create_user_command('Diff', function()
   vim.cmd('term git diff | delta')

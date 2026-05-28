@@ -11,7 +11,7 @@ Neovim configuration based on kickstart.nvim. Uses `vim.pack` (Neovim's built-in
 ### Core Structure
 
 - `init.lua` - Main configuration, organized into numbered `do ... end` sections (options/keymaps, plugin-manager intro, UI plugins, search, LSP, formatting, completion, treesitter, optional examples). Plugins are installed inline with `vim.pack.add { ... }` followed by the plugin's `setup()`. A `gh(repo)` helper builds GitHub URLs. Build steps run via a `PackChanged` autocommand. Kickstart plugins (debug, indent_line, lint, autopairs, neo-tree, gitsigns) and `require 'custom.plugins'` are loaded at the bottom, then `require 'custom.init'`.
-- `lua/custom/init.lua` - Custom settings loaded at end of init.lua: window resize keymaps, theming (rose-pine via OSC11 detection), custom commands (`:Ask`, `:Diff`, `:Diffs`), colorcolumn, save keymaps, exrc support.
+- `lua/custom/init.lua` - Custom settings loaded at end of init.lua: window resize keymaps, theming (rose-pine via OSC11 detection), custom commands (`:Ask`, `:Diff`, `:Diffs`, `:ReloadConfig`), colorcolumn, save keymaps, exrc support.
 - `lua/custom/plugins/init.lua` - Loader that `require`s every other `.lua` file in the directory. Each sibling file installs/configures one plugin group with `vim.pack.add`: `alpha.lua` (dashboard), `barbar.lua` (tabs), `treesitter-context.lua`, `colorschemes.lua` (+ OSC11), `mason-lspconfig.lua` (auto-enables Mason-installed servers), `notify.lua`.
 - `lua/custom/mason.lua` - Centralized Mason tool registry. Single source of truth for LSP servers, formatters, linters, and DAP adapters. Referenced by init.lua for LSP setup and conform.nvim formatter mapping.
 - `lua/kickstart/plugins/` - Optional kickstart plugin modules (autopairs, debug, gitsigns, indent_line, lint, neo-tree). Each is a script using `vim.pack.add` (no longer lazy specs).
@@ -38,7 +38,7 @@ LSP uses `nvim-lspconfig` + `mason.nvim` + `mason-tool-installer.nvim`. blink.cm
 
 ### Formatting
 
-`conform.nvim` with format-on-save enabled (except C/C++). Manual format: `<leader>f`. Formatter mapping lives in `lua/custom/mason.lua` `formatters_by_ft`.
+`conform.nvim` with format-on-save enabled (except C/C++). Manual format: `<leader>f`. Formatter mapping lives in `lua/custom/mason.lua` `formatters_by_ft`. Markdown uses `prettier` (configured via `.prettierrc.json` for `proseWrap: always`), with `markdownlint` as its linter.
 
 ## Code Style
 
