@@ -11,6 +11,11 @@ vim.g.vimtex_view_method = 'zathura_simple'
 -- Only surface the quickfix window for real errors, not warnings, while editing.
 vim.g.vimtex_quickfix_open_on_warning = 0
 
+-- texlab (LSP, installed via Mason) is the single source of truth for LaTeX
+-- completion. Disable vimtex's own completion so it stops registering an
+-- omnifunc that would compete with / duplicate texlab's \cite, \ref, etc.
+vim.g.vimtex_complete_enabled = 0
+
 -- Silence vimtex's command-line echoes - the ones that stack up into blocking
 -- "hit-enter" prompts. Messages are still recorded in :VimtexLog; compile status
 -- is surfaced as nvim-notify popups instead (see the User autocmds below).
