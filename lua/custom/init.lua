@@ -20,6 +20,12 @@ vim.keymap.set('n', 'grs', '<Cmd>LspClangdSwitchSourceHeader<CR>', { desc = '[G]
 vim.opt.colorcolumn = '80'
 vim.opt.mousescroll = 'ver:2,hor:0'
 
+-- Remove the "How-to disable mouse" entry (and its now-dangling separator) from
+-- the right-click popup menu. These are Neovim default PopUp items; see
+-- runtime/lua/vim/_defaults.lua and :help vim_diff (aunmenu PopUp...).
+pcall(vim.cmd, [[aunmenu PopUp.How-to\ disable\ mouse]])
+pcall(vim.cmd, [[aunmenu PopUp.-2-]])
+
 -- Disable horizontal scrolling in terminal buffers
 vim.api.nvim_create_autocmd('TermOpen', {
   callback = function()
