@@ -32,14 +32,20 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function() vim.opt_local.conceallevel = 2 end,
 })
 
--- Compile feedback through nvim-notify: a single popup, reused via `replace`, that
--- morphs in place across every compile (save or manual \ll) - no stacking. vimtex
--- fires these User events for each compile, single-shot included.
+-- Compile feedback through nvim-notify: a single popup that morphs in place
+-- across each compile (save or manual \ll) - no stacking. CompileStarted opens a
+-- FRESH popup (replace=nil) and the result event replaces it via `replace`.
+-- We must not reuse the stored handle to *start* a compile: `replace` only
+-- matches notifications still on screen, and by the next save the previous
+-- result popup has timed out and its window is gone - reusing that dead handle
+-- makes nvim-notify warn "No matching notification found to replace". The
+-- Compiling popup, by contrast, has timeout=false so it's always alive when the
+-- result replaces it.
 local notif
-local function notify(msg, level, timeout) notif = vim.notify(msg, level, { title = 'LaTeX', timeout = timeout, replace = notif }) end
+local function notify(msg, level, timeout, fresh) notif = vim.notify(msg, level, { title = 'LaTeX', timeout = timeout, replace = not fresh and notif or nil }) end
 
 local compile_events = {
-  VimtexEventCompileStarted = { 'Compiling…', vim.log.levels.INFO, false }, -- persists until a result replaces it
+  VimtexEventCompileStarted = { 'Compiling…', vim.log.levels.INFO, false, true }, -- fresh popup; persists until a result replaces it
   VimtexEventCompileSuccess = { 'Compiled ✓', vim.log.levels.INFO, 2000 },
   VimtexEventCompileFailed = { 'Compilation failed — :VimtexErrors', vim.log.levels.ERROR, 5000 },
 }
