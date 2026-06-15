@@ -801,7 +801,20 @@ do
     },
 
     sources = {
-      default = { 'lsp', 'path', 'snippets' },
+      default = { 'lsp', 'path', 'snippets', 'lazydev' },
+      -- vimtex sets &omnifunc = vimtex#complete#omnifunc on tex buffers, which
+      -- completes \cite{} from the bibliography (refs.bib / \addbibresource{} /
+      -- \printbibliography), plus \ref{}, \includegraphics{}, \input{}, etc.
+      -- blink's built-in `omni` source routes that omnifunc into the menu. No
+      -- tex LSP is configured here, so nothing overrides vimtex's omnifunc.
+      per_filetype = {
+        tex = { 'omni', 'lsp', 'path', 'snippets' },
+      },
+      providers = {
+        -- `lazydev` (see lua/custom/plugins/lazydev.lua) completes Neovim API
+        -- and `require` module paths when editing Lua config/plugins.
+        lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+      },
     },
 
     snippets = { preset = 'luasnip' },
