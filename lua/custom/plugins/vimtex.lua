@@ -1,5 +1,5 @@
 -- vimtex: LaTeX editing with compile + PDF preview and SyncTeX.
---   Engine : tectonic  (~/.local/bin/tectonic -> ~/AppImages/tectonic.AppImage)
+--   Engine : tectonic  (~/.local/bin/tectonic -> ~/AppImages/tectonic)
 --   Viewer : zathura   (needs zathura + zathura-pdf-mupdf) - forward + inverse search
 -- vimtex is configured through `vim.g.vimtex_*` globals, which must be set
 -- BEFORE the plugin is sourced by vim.pack.add.
@@ -31,9 +31,7 @@ vim.api.nvim_create_autocmd('FileType', {
 -- morphs in place across every compile (save or manual \ll) - no stacking. vimtex
 -- fires these User events for each compile, single-shot included.
 local notif
-local function notify(msg, level, timeout)
-  notif = vim.notify(msg, level, { title = 'LaTeX', timeout = timeout, replace = notif })
-end
+local function notify(msg, level, timeout) notif = vim.notify(msg, level, { title = 'LaTeX', timeout = timeout, replace = notif }) end
 
 local compile_events = {
   VimtexEventCompileStarted = { 'Compiling…', vim.log.levels.INFO, false }, -- persists until a result replaces it
