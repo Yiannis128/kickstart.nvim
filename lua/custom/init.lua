@@ -142,5 +142,42 @@ vim.api.nvim_create_user_command('Ask', function(opts)
   end)
 end, { nargs = '+', desc = 'Ask Claude a question' })
 
+-- Project-local hook for .nvim.lua files (vim.o.exrc): makes dotfiles except
+-- .git visible in telescope find_files/live_grep and neo-tree. The optional
+-- list restricts both pickers to those search roots. Usage:
+--   add_directory { 'zsh', 'git' }   -- or add_directory()
+function _G.add_directory(dirs)
+  dirs = dirs or {}
+
+  local telescope_ok, telescope = pcall(require, 'telescope')
+  if telescope_ok then
+    -- find_command is the only supported exclude mechanism on find_files'
+    -- rg path (no additional_args there); rg is a hard dep of this config
+    local find_command = { 'rg', '--files', '--hidden', '--color', 'never', '-g', '!.git' }
+    vim.list_extend(find_command, dirs)
+    telescope.setup {
+      pickers = {
+        find_files = { find_command = find_command },
+        live_grep = { hidden = true, additional_args = { '-g', '!.git' }, search_dirs = dirs },
+      },
+    }
+  end
+
+  local neotree_ok, neotree = pcall(require, 'neo-tree')
+  if neotree_ok then
+    -- setup() only stashes config until the tree first opens (neotree.config
+    -- is nil before that), so extend the pending user config from peek_config
+    -- instead of the merged one; merge_config re-merges against defaults
+    neotree.setup(vim.tbl_deep_extend('force', neotree.peek_config() or {}, {
+      filesystem = {
+        filtered_items = {
+          hide_dotfiles = false,
+          never_show = { '.git' },
+        },
+      },
+    }))
+  end
+end
+
 -- Source project-local .nvim.lua from the current directory (with trust prompt)
 vim.o.exrc = true
