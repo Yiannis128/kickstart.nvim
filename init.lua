@@ -685,7 +685,9 @@ do
   }
 
   -- Automatically install LSPs and related tools to stdpath for Neovim
-  require('mason').setup {}
+  -- 'append', not Mason's default 'prepend': tools on the system PATH must win,
+  -- so editors and agents outside nvim run the same binary.
+  require('mason').setup { PATH = 'append' }
 
   -- Ensure the servers and tools above are installed
   --
@@ -714,7 +716,7 @@ do
     format_on_save = function(bufnr)
       -- Disable autoformat-on-save for languages that don't have a well
       -- standardized coding style. Everything else formats on save.
-      local disable_filetypes = { c = true, cpp = true }
+      local disable_filetypes = {} -- { c = true, cpp = true }
       if disable_filetypes[vim.bo[bufnr].filetype] then
         return nil
       else

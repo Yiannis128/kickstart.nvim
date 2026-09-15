@@ -5,7 +5,13 @@
 return {
   -- LSP servers: keys are lspconfig server names,
   -- values are server-specific config passed to vim.lsp.config().
+  -- All but lua_ls come from the system PATH; they need an entry here because
+  -- mason-lspconfig only auto-enables servers Mason itself installed.
   lsp = {
+    bashls = {},
+    clangd = {},
+    pyright = {},
+    texlab = {},
     lua_ls = {
       settings = {
         Lua = {
@@ -18,12 +24,14 @@ return {
   },
 
   -- Filetype -> formatter mapping (passed to conform.nvim).
+  -- These are resolved from the system PATH, not Mason. See `ensure_installed`.
   formatters_by_ft = {
     lua = { 'stylua' },
     markdown = { 'prettier' },
-    python = { 'black' },
+    python = { 'ruff_format' },
     tex = { 'tex-fmt' },
-    toml = { 'pyproject-fmt' },
+    c = { 'clang-format' },
+    cpp = { 'clang-format' },
   },
 
   -- Filetype -> linter mapping (passed to nvim-lint).
@@ -31,15 +39,10 @@ return {
     markdown = { 'markdownlint' },
   },
 
-  -- DAP adapter Mason package names to install.
-  dap = { 'codelldb' },
-
   -- Mason packages to auto-install (uses Mason registry names).
-  -- Leave empty to manage installations manually via :Mason UI.
+  -- Only what no other package manager ships. Everything else lives on the
+  -- system PATH so tools outside nvim run the same binaries.
   ensure_installed = {
-    -- LSP servers
-    -- Formatters
-    -- Linters
-    -- DAP adapters
+    'lua-language-server',
   },
 }

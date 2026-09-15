@@ -13,7 +13,7 @@ Neovim configuration based on kickstart.nvim. Uses `vim.pack` (Neovim's built-in
 - `init.lua` - Main configuration, organized into numbered `do ... end` sections (options/keymaps, plugin-manager intro, UI plugins, search, LSP, formatting, completion, treesitter, optional examples). Plugins are installed inline with `vim.pack.add { ... }` followed by the plugin's `setup()`. A `gh(repo)` helper builds GitHub URLs. Build steps run via a `PackChanged` autocommand. Kickstart plugins (debug, indent_line, lint, autopairs, neo-tree, gitsigns) and `require 'custom.plugins'` are loaded at the bottom, then `require 'custom.init'`.
 - `lua/custom/init.lua` - Custom settings loaded at end of init.lua: window resize keymaps, theming (rose-pine via OSC11 detection), custom commands (`:Ask`, `:Diff`, `:Diffs`, `:ReloadConfig`), colorcolumn, save keymaps, exrc support.
 - `lua/custom/plugins/init.lua` - Loader that `require`s every other `.lua` file in the directory. Each sibling file installs/configures one plugin group with `vim.pack.add`: `alpha.lua` (dashboard), `barbar.lua` (tabs), `treesitter-context.lua`, `colorschemes.lua` (+ OSC11), `mason-lspconfig.lua` (auto-enables Mason-installed servers), `notify.lua`.
-- `lua/custom/mason.lua` - Centralized Mason tool registry. Single source of truth for LSP servers, formatters, linters, and DAP adapters. Referenced by init.lua for LSP setup and conform.nvim formatter mapping.
+- `lua/custom/mason.lua` - Central tool registry. Single source of truth for LSP servers, formatters and linters. Referenced by init.lua for LSP setup and conform.nvim formatter mapping. Despite the name, most of what it maps is installed outside Mason — see Tooling below.
 - `lua/kickstart/plugins/` - Optional kickstart plugin modules (autopairs, debug, gitsigns, indent_line, lint, neo-tree). Each is a script using `vim.pack.add` (no longer lazy specs).
 
 ### Plugins (vim.pack)
@@ -23,14 +23,30 @@ Neovim configuration based on kickstart.nvim. Uses `vim.pack` (Neovim's built-in
 - **Update plugins**: `:lua vim.pack.update()` (or the `u` dashboard button). Inspect with `:lua vim.pack.update(nil, { offline = true })`.
 - **Build steps** (e.g. telescope-fzf-native `make`, LuaSnip `make install_jsregexp`, treesitter `TSUpdate`) run from the `PackChanged` autocommand in init.lua's section 2.
 
+### Tooling — where formatters, linters and LSP servers come from
+
+Mason is set up with `PATH = 'append'`, so a tool on the system PATH always beats a Mason copy. This is deliberate. Mason's `bin/` is injected into nvim's process PATH only, so anything installed there is invisible to shells, scripts, CI and coding agents — they cannot format or lint with it. Install through the manager that owns the language and nvim picks it up automatically, since `conform.nvim` and `nvim-lint` resolve executables from PATH.
+
+| tool | installed with |
+| --- | --- |
+| `ruff`, `clang-format`, `clangd` | `dnfkeep add base "<why>" <pkg>` |
+| `stylua`, `tex-fmt`, `texlab` | `cargo install` |
+| `prettier`, `markdownlint`, `bash-language-server`, `pyright` | `bun install -g` |
+| Python CLI tools | `uv tool install` |
+| `lua-language-server` | Mason — packaged nowhere else |
+
+**Mason is the last resort, not the default.** `ensure_installed` lists only what no other manager ships. Adding anything else there silently duplicates a system package: it happened with `clangd`, which `clang-tools-extra` already provides.
+
+Project-specific toolchains do not go on the host at all. They belong to that project's toolbox container — declared in `~/.config/dnfkeep/containers/<name>.keep`, installed by the container's own dnf through `~/.config/toolbox/Containerfile.<name>`. `$HOME` is bind-mounted into every toolbox, so this config *and* `~/.local/share/nvim/mason` are shared between host and containers, which is precisely why anything compiled must come from the container's dnf rather than Mason. `lldb-dap` is the worked example: a debugger has to run in the same context as the build.
+
 ### LSP Configuration
 
 LSP uses `nvim-lspconfig` + `mason.nvim` + `mason-tool-installer.nvim`. blink.cmp handles capability advertisement internally (no manual `get_lsp_capabilities()` needed).
 
-- **Add an LSP server**: add entry to `lua/custom/mason.lua` `lsp` table, optionally add to `ensure_installed` for auto-install
+- **Add an LSP server**: install it per the table above, then add an entry (even `{}`) to the `lsp` table in `lua/custom/mason.lua` — `mason-lspconfig` only auto-enables servers Mason itself installed, so a PATH-provided server is never enabled without one
 - **Add a formatter**: add to `formatters_by_ft` in `lua/custom/mason.lua`
 - **Add a linter**: add to `linters_by_ft` in `lua/custom/mason.lua`
-- Mason-installed servers not in `custom.mason.lsp` are auto-enabled via `mason-lspconfig.nvim` in custom plugins
+- **Add a DAP adapter**: configure `dap.adapters.*` directly in `lua/kickstart/plugins/debug.lua` with a bare command name so it resolves from PATH
 
 ### Completion
 
@@ -38,7 +54,7 @@ LSP uses `nvim-lspconfig` + `mason.nvim` + `mason-tool-installer.nvim`. blink.cm
 
 ### Formatting
 
-`conform.nvim` with format-on-save enabled (except C/C++). Manual format: `<leader>f`. Formatter mapping lives in `lua/custom/mason.lua` `formatters_by_ft`. Markdown uses `prettier` (configured via `.prettierrc.json` for `proseWrap: always`), with `markdownlint` as its linter.
+`conform.nvim` with format-on-save for every filetype — `disable_filetypes` is empty, the `{ c = true, cpp = true }` beside it is a commented-out example. Manual format: `<leader>f`. Formatter mapping lives in `lua/custom/mason.lua` `formatters_by_ft`. Python uses `ruff_format` (not black). Markdown uses `prettier`, with `markdownlint` as its linter; prose wrapping is set twice, in `.prettierrc.json` and again as `prepend_args` in init.lua. C/C++ use `clang-format` with no style overrides, so a project `.clang-format` applies and LLVM style is the fallback.
 
 ## Code Style
 

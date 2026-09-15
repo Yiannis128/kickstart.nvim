@@ -20,6 +20,10 @@ vim.keymap.set('n', 'grs', '<Cmd>LspClangdSwitchSourceHeader<CR>', { desc = '[G]
 vim.opt.colorcolumn = '80'
 vim.opt.mousescroll = 'ver:2,hor:0'
 
+-- Spaces, not tabs, so conform's tex-fmt runs `--tabsize 2` without --usetabs
+vim.o.expandtab = true
+vim.o.shiftwidth = 2
+
 -- Remove the "How-to disable mouse" entry (and its now-dangling separator) from
 -- the right-click popup menu. These are Neovim default PopUp items; see
 -- runtime/lua/vim/_defaults.lua and :help vim_diff (aunmenu PopUp...).
@@ -76,7 +80,7 @@ local function set_theme(light_theme, dark_theme)
   -- a fresh OSC 11 response arrives *after* the listener above is registered,
   -- so OSC11 reliably applies the correct light/dark theme regardless of how
   -- the startup response raced against plugin load order.
-  io.write('\027]11;?\007')
+  io.write '\027]11;?\007'
 end
 
 -- Themes - light theme first, optional dark theme second
@@ -95,22 +99,16 @@ vim.keymap.set(
 -- then re-sources init.lua.
 vim.api.nvim_create_user_command('ReloadConfig', function()
   for name in pairs(package.loaded) do
-    if name:match('^custom') or name:match('^kickstart') then
-      package.loaded[name] = nil
-    end
+    if name:match '^custom' or name:match '^kickstart' then package.loaded[name] = nil end
   end
-  vim.cmd('source ' .. vim.fn.stdpath('config') .. '/init.lua')
+  vim.cmd('source ' .. vim.fn.stdpath 'config' .. '/init.lua')
   vim.notify('Config reloaded', vim.log.levels.INFO, { title = 'ReloadConfig' })
 end, { desc = 'Reload Neovim config' })
 
 -- Git diff with delta
-vim.api.nvim_create_user_command('Diff', function()
-  vim.cmd('term git diff | delta')
-end, { desc = 'Git diff with delta' })
+vim.api.nvim_create_user_command('Diff', function() vim.cmd 'term git diff | delta' end, { desc = 'Git diff with delta' })
 
-vim.api.nvim_create_user_command('Diffs', function()
-  vim.cmd('term git diff | delta --side-by-side')
-end, { desc = 'Git diff with delta (side-by-side)' })
+vim.api.nvim_create_user_command('Diffs', function() vim.cmd 'term git diff | delta --side-by-side' end, { desc = 'Git diff with delta (side-by-side)' })
 
 -- Ask Claude a question from within Neovim
 vim.api.nvim_create_user_command('Ask', function(opts)
@@ -119,7 +117,7 @@ vim.api.nvim_create_user_command('Ask', function(opts)
     vim.notify('Usage: :Ask <question>', vim.log.levels.ERROR)
     return
   end
-  local nvim_dir = vim.fn.stdpath('config')
+  local nvim_dir = vim.fn.stdpath 'config'
   vim.notify('Asking Claude...', vim.log.levels.INFO, { title = 'Claude' })
   vim.system({ 'claude', '-p', question }, { cwd = nvim_dir }, function(result)
     vim.schedule(function()
@@ -132,7 +130,7 @@ vim.api.nvim_create_user_command('Ask', function(opts)
       if #lines <= 5 then
         vim.notify(output, vim.log.levels.INFO, { title = 'Claude', timeout = 20000 })
       else
-        vim.cmd('vnew')
+        vim.cmd 'vnew'
         local buf = vim.api.nvim_get_current_buf()
         vim.bo[buf].buftype = 'nofile'
         vim.bo[buf].bufhidden = 'wipe'
